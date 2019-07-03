@@ -82,6 +82,16 @@ class WarehousePacking extends WireData implements Module {
 			$url->query->set('action', 'add-carton');
 			$event->return = $url->getUrl();
 		});
+
+		$this->addHook('Page::get_submitpacklineURL', function($event) {
+			$p = $event->object;
+			$linenbr = $event->arguments(0);
+			$url = new Url($p->fullURL->getUrl());
+			$url->path = $p->child('template=redir')->url;
+			$url->query->set('action', 'save-line');
+			$url->query->set('page', $p->fullURL->getUrl());
+			$event->return = $url->getUrl();
+		});
 	}
 
 	/**

@@ -8,7 +8,7 @@
 	<tr>
 		<td>{{ packitem.itemid }}</td>
 		<td class="text-right">{{ packitem.qty_toship }}</td>
-		<td class="text-right">{{ packitem.qty_packed }}</td>
+		<td class="text-right">{{ packitem.qty_packed + 0 }}</td>
 		<td class="text-right">{{ packitem.qty_remaining }}</td>
 	</tr>
 </table>
@@ -24,11 +24,26 @@
 			</select><br>
 			<a href="{{ page.get_addcartonURL() }}" class="btn btn-secondary">Add Carton</a>
 		</div>
-		<div class="col-sm-8">
-			{% block item_inputs %}
 
-			{% endblock item_inputs %}
-		</div>
+		{% block item_inputs %}
+			<div class="col-sm-3">
+				<label for="qty">Qty</label>
+				<input type="number" name="qty" class="form-control" id="qty" value="1">
+			</div>
+
+			<div class="col-sm-5">
+				<label for="">Item</label>
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<button class="btn btn-primary" type="button" data-toggle="modal" data-target="#item-availability-modal">Available</button>
+					</div>
+					<input type="text" class="form-control" name="barcode" placeholder="Barcode" aria-label="Barcode">
+					<div class="input-group-append">
+						<button class="btn btn-success" type="submit">Add</button>
+					</div>
+				</div>
+			</div>
+		{% endblock item_inputs %}
 	</div>
 </form>
 <div class="mt-4">
@@ -36,7 +51,11 @@
 		<div class="col-sm-4 form-group">
 			<a href="#" class="btn btn-danger">Exit Order</a>
 		</div>
-		<div class="col-sm-4 form-group"></div>
-		<div class="col-sm-4 form-group"></div>
+		<div class="col-sm-4 form-group">
+			<a href="{{ page.get_submitpacklineURL(packitem.linenbr) }}" class="btn btn-success">Save</a>
+		</div>
+		<div class="col-sm-4 form-group">
+
+		</div>
 	</div>
 </div>
