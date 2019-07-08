@@ -1,0 +1,22 @@
+<form action="{{ page.fullURL.getUrl() }}" method="POST" id="barcode-form">
+	<input type="hidden" name="action" value="add-barcode">
+	<input type="hidden" name="carton" value="{{ box }}">
+	<div class="row">
+		{% block item_inputs %}
+			<div class="col-sm-3">
+				<label for="qty">Qty</label>
+				<input type="number" name="qty" class="form-control" id="qty" value="1">
+			</div>
+
+			<div class="col-sm-5">
+				<label for="">Item</label>
+				<div class="input-group mb-3">
+					<input type="text" class="form-control" name="barcode" placeholder="Barcode" aria-label="Barcode">
+					<div class="input-group-append">
+						<button class="btn btn-success" type="submit">Add</button>
+					</div>
+				</div>
+			</div>
+		{% endblock item_inputs %}
+	</div>
+</form>

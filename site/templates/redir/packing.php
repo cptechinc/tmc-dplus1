@@ -23,13 +23,13 @@
 		case 'save-line':
 			$ordn = SalesOrder::get_paddedordernumber($input->$requestmethod->text('ordn'));
 			$linenbr = $input->$requestmethod->text('linenbr');
-			$data = array("DBNAME=$dplusdb", "ORDERNBR=$ordn", "LINENBR=$linenbr");
+			$data = array("DBNAME=$dplusdb", "ORDERNBR=$ordn");
 			$packquery = WhseitempackQuery::create()->filterBySessionidOrderLinenbr(session_id(), $ordn, $linenbr);
 			$packed_items = $packquery->find();
 			echo $dpluso->getLastExecutedQuery();
 
 			foreach ($packed_items as $packed) {
-				$data[] = "CARTON=$packed->carton|ITEMID=$packed->itemid|LOTSERIAL=$packed->lotserial|QTY=$packed->qty";
+				$data[] = "CARTON=$packed->carton|LINENBR=$linenbr|ITEM=$packed->itemid|LOTSER=$packed->lotserial|QTY=$packed->qty";
 			}
 			$url = new Purl\Url($input->$requestmethod->text('page'));
 			$url->query->remove('linenbr');

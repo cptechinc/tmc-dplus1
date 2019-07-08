@@ -6,43 +6,48 @@
 	$whsesession = $warehousepacking->get_whsesession();
 	$warehouse   = $warehousepacking->get_warehouseconfig();
 	$http = new WireHttp();
+	$html = $modules->get('HtmlWriter');
 
 	if ($input->get->ordn) {
 		$ordn = SalesOrder::get_paddedordernumber($input->get->text('ordn'));
+		$warehousepacking->set_ordn($ordn);
 		$warehousepacking->init_cartoncount();
 
 		if (SalesOrderQuery::create()->orderExists($ordn)) {
 			$warehousepacking->set_ordn($ordn);
 
-			if ($input->get->linenbr) {
-				if ($input->requestMethod('POST') || $input->get->text('action') == 'add-carton') {
+			if ($input->get->text('action') == 'add-box') {
+				$warehousepacking->handle_barcodeaction($input);
+				$session->redirect($page->fullURL->getUrl(), $http301 = false);
+			}
+
+			if ($input->get->box) {
+				$boxnumber = $input->get->text('box');
+				$page->box = $boxnumber;
+
+				if ($input->requestMethod('POST')) {
 					$warehousepacking->handle_barcodeaction($input);
-					$session->redirect($page->fullURL->getUrl(), $http301 = false);
+					// $session->redirect($page->fullURL->getUrl(), $http301 = false);
 				}
+					$packed_items = WhseitempackQuery::create()->filterBySessionidOrder(session_id(), $ordn)->filterByCarton($boxnumber)->find();
+					$page->body .= $config->twig->render('warehouse/packing/box-header.twig', ['page' => $page, 'warehousepacking' => $warehousepacking]);
 
-				$page->linenbr = $input->get->int('linenbr');
-				$page->carton = $warehousepacking->get_cartoncount();
-				$warehousepacking->init_packsalesorderdetail_line($page->linenbr);
-				$packitem = $warehousepacking->get_packsalesorderdetail_line($page->linenbr);
-				
-				$packed_items = WhseitempackQuery::create()->filterBySessionidOrderLinenbr(session_id(), $ordn, $page->linenbr)->find();
+					if ($session->packerror) {
+						$page->body .= $config->twig->render('util/alert.twig', ['type' => 'danger', 'title' => "Error!", 'iconclass' => 'fa fa-warning fa-2x', 'message' => $session->packerror]);
+						$page->body .= $html->div('class=form-group', '');
+						$session->remove('packerror');
+					}
+					$page->body .= $config->twig->render('warehouse/packing/box-item-form.twig', ['page' => $page, 'warehousepacking' => $warehousepacking, 'box' => $boxnumber]);
+					$page->body .= $config->twig->render('warehouse/packing/box-items.twig', ['page' => $page, 'warehousepacking' => $warehousepacking, 'packed_items' => $packed_items]);
 
-				if ($packitem->is_item_serialized()) {
-					$inventoryresults = InvsearchQuery::create()->findByItemid(session_id(), $packitem->itemid);
-					$page->body .= $config->twig->render('warehouse/packing/packing-form-serialized.twig', ['page' => $page, 'warehousepacking' => $warehousepacking, 'packitem' => $packitem]);
-					$page->body .= $config->twig->render('warehouse/packing/packed-items-serialized.twig', ['page' => $page, 'warehousepacking' => $warehousepacking, 'packitem' => $packitem, 'packed_items' => $packed_items]);
-					$page->body .= $config->twig->render('warehouse/packing/item-availability-modal.twig', ['packitem' => $packitem, 'inventoryresults' => $inventoryresults,]);
-				} elseif ($packitem->is_item_lotted()) {
 
-				} else {
-					$page->body .= $config->twig->render('warehouse/packing/packing-form.twig', ['page' => $page, 'warehousepacking' => $warehousepacking, 'packitem' => $packitem]);
-					$page->body .= $config->twig->render('warehouse/packing/packed-items.twig', ['page' => $page, 'warehousepacking' => $warehousepacking, 'packitem' => $packitem, 'packed_items' => $packed_items]);
-					$page->body .= $config->twig->render('warehouse/packing/item-availability-modal.twig', ['packitem' => $packitem, 'inventoryresults' => $inventoryresults,]);
-				}
 			} else {
 				//$http->get("127.0.0.1".$pages->get('template=redir, redir_file=sales-order')->url."?action=get-order-notes&ordn=$ordn&sessionID=".session_id());
 				$page->body = $config->twig->render('warehouse/packing/order-notes.twig', ['page' => $page, 'notes' => $warehousepacking->get_packingnotes()]);
-				$page->body .= $config->twig->render('warehouse/packing/select-line-form.twig', ['page' => $page, 'warehousepacking' => $warehousepacking]);
+				$page->body .= $html->div('class=mb-3');
+				$page->body .= $config->twig->render('warehouse/packing/box-list.twig', ['page' => $page, 'warehousepacking' => $warehousepacking]);
+				$page->body .= $html->h3('Items');
+				$page->body .= $config->twig->render('warehouse/packing/order-items.twig', ['page' => $page, 'warehousepacking' => $warehousepacking]);
 			}
 		} else {
 			$page->body = $config->twig->render('warehouse/packing/status.twig', ['page' => $page, 'message' => "Error finding Sales Order # $ordn"]);

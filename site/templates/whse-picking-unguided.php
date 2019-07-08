@@ -34,8 +34,8 @@
 					$http->get("127.0.0.1".$pages->get('template=redir,redir_file=inventory')->url."?action=inventory-search&scan=$pickitem->itemid&sessionID=".session_id());
 				}
 
-				$picked_barcodes = WhseitempickQuery::create()->filterByBin('PACK', Criteria::ALT_NOT_EQUAL)->filterBySessionidOrderLinenbr(session_id(), $ordn, $pickitem->linenbr)->find;
-				
+				$picked_barcodes = WhseitempickQuery::create()->filterByBin('PACK', Criteria::ALT_NOT_EQUAL)->filterBySessionidOrderLinenbr(session_id(), $ordn, $pickitem->linenbr)->find();
+
 				$picked_barcodes_packbin = WhseitempickQuery::create()->filterByBin('PACK')->filterBySessionidOrderLinenbr(session_id(), $ordn, $pickitem->linenbr);
 				$inventory_master = InvsearchQuery::create();
 				$pickingsession->insert_barcode_itemID($pickitem->itemid);

@@ -1,0 +1,21 @@
+<div class="row">
+	<div class="col-sm-12">
+		<div class="mb-5">
+			<div class="mb-3">
+				<h3>Remaining</h3>
+				<div class="list-group">
+					{% for line in warehousepacking.get_packsalesorderdetails_unpacked() %}
+						{% include 'warehouse/packing/order-list-group-item.twig' %}
+					{% endfor %}
+				</div>
+			</div>
+
+			<h3>Packed</h3>
+			<div class="list-group">
+				{% for line in warehousepacking.get_packsalesorderdetails_packed() %}
+					{% include 'warehouse/packing/order-list-group-item.twig' %}
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
