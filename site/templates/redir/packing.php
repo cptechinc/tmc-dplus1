@@ -20,23 +20,23 @@
 			$ordn = $input->$requestmethod->text('ordn');
 			$data = array("DBNAME=$dplusdb", "LQNOTE=SORD", "KEY1=$ordn", "KEY2=0");
 			break;
-		case 'save-line':
+		case 'save-packing-box':
 			$ordn = SalesOrder::get_paddedordernumber($input->$requestmethod->text('ordn'));
-			$linenbr = $input->$requestmethod->text('linenbr');
-			$data = array("DBNAME=$dplusdb", "ORDERNBR=$ordn");
-			$packquery = WhseitempackQuery::create()->filterBySessionidOrderLinenbr(session_id(), $ordn, $linenbr);
+			$box = $input->$requestmethod->int('box');
+			$data = array("DBNAME=$dplusdb", 'PACKCARTON2', "ORDERNBR=$ordn", "CARTON=$box");
+			$packquery = WhseitempackQuery::create()->filterBySessionidOrder(session_id(), $ordn);
+			$packquery->filterByCarton($box);
+			$packquery->groupBy(array('itemid', 'lotserial'));
 			$packed_items = $packquery->find();
-			echo $dpluso->getLastExecutedQuery();
 
 			foreach ($packed_items as $packed) {
-				$data[] = "CARTON=$packed->carton|LINENBR=$linenbr|ITEM=$packed->itemid|LOTSER=$packed->lotserial|QTY=$packed->qty";
+				$data[] = "LINENBR=$packed->linenumber|ITEM=$packed->itemid|LOTSER=$packed->lotserial|QTY=$packed->qty";
 			}
-			$url = new Purl\Url($input->$requestmethod->text('page'));
-			$url->query->remove('linenbr');
-			$input->$requestmethod->page = $url->getUrl();
-			$session->loc = $input->$requestmethod->text('page');
-			echo json_encode($data);
-			exit;
+
+			if ($input->$requestmethod->page) {
+				$url = new Purl\Url($input->$requestmethod->text('page'));
+				$session->loc = $input->$requestmethod->text('page');
+			}
 			break;
 		case 'finish-pack':
 			$ordn = $input->$requestmethod->text('ordn');

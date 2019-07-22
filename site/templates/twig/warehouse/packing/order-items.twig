@@ -1,21 +1,26 @@
-<div class="row">
-	<div class="col-sm-12">
-		<div class="mb-5">
-			<div class="mb-3">
-				<h3>Remaining</h3>
-				<div class="list-group">
-					{% for line in warehousepacking.get_packsalesorderdetails_unpacked() %}
-						{% include 'warehouse/packing/order-list-group-item.twig' %}
-					{% endfor %}
-				</div>
-			</div>
-
-			<h3>Packed</h3>
-			<div class="list-group">
-				{% for line in warehousepacking.get_packsalesorderdetails_packed() %}
-					{% include 'warehouse/packing/order-list-group-item.twig' %}
-				{% endfor %}
+<div class="mb-3">
+	<div class="list-group">
+		<div class="list-group-item bg-dark text-white">
+			<div class="row">
+				<div class="col-sm-1">Carton</div>
+				<div class="col-sm-1">Line</div>
+				<div class="col-sm-4">Item</div>
+				<div class="col-sm-2">In Box</div>
+				<div class="col-sm-1">To Ship</div>
+				<div class="col-sm-1">Packed</div>
+				<div class="col-sm-1">Remaining</div>
 			</div>
 		</div>
+		{% for line in warehousepacking.get_packsalesorderdetails() %}
+			{% if warehousepacking.get_line_qtyremaining(line.linenbr) %}
+				{% include 'warehouse/packing/order-list-group-item.twig' %}
+			{% endif %}
+		{% endfor %}
+		<div class="list-group-item bg-light">
+			<h3 class="text-center">Packed</h3>
+		</div>
+		{% for packed in warehousepacking.get_packeditems() %}
+			{% include 'warehouse/packing/packed-item.twig' %}
+		{% endfor %}
 	</div>
 </div>

@@ -1,33 +1,21 @@
 <div class="list-group-item">
 	<div class="row mb-3">
-		<div class="col-sm-6">
-			<div class="row">
-				<div class="col"><h4 class="list-group-item-heading">{{ line.itemid }} </h4></div>
-				<div class="col">
-					<a href="#{{ line.itemid|attrJS }}" class="btn btn-secondary" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="{{ line.itemid|attrJS }}">Box Breakdown</a>
-				</div>
-			</div>
+		<div class="col-sm-1">0</div>
+		<div class="col-sm-1">{{ line.linenbr }}</div>
+		<div class="col-sm-4">
+			{% if line.is_item_serialized() %}
+				{{ line.itemid }}
+			{% else %}
+				<a href="#" class="choose-item" data-itemID="{{ line.itemid }}" data-linenbr="{{ line.linenbr }}" data-itemtype="{{ warehousepacking.get_itemtypecode(line.itemid) }}" data-lotserial="">
+					<span class="badge badge-secondary">{{ line.itemid }}</span>
+				</a>
+			{% endif %}
+			<br>
+			{{ line.desc1 }}
 		</div>
-		<div class="col-sm-6">
-			To Ship: {{ warehousepacking.get_line_qtytoship(line.linenbr) }}
-			Packed: {{ warehousepacking.get_line_qtypacked(line.linenbr) }}
-			Remaining: {{ warehousepacking.get_line_qtyremaining(line.linenbr) }}
-		</div>
-	</div>
-	<div class="collapse" id="{{ line.itemid|attrJS }}">
-		<table class="table table-sm table-striped table-bordered">
-			<tr>
-				<th>Box</th>
-				<th>Lot / Serial</th>
-				<th>Qty</th>
-			</tr>
-			{% for packeditem in warehousepacking.get_whseitempack_line(line.linenbr) %}
-				<tr>
-					<td>{{ packeditem.carton }}</td>
-					<td>{{ packeditem.lotserial ? packeditem.lotserial : 'N/A' }}</td>
-					<td>{{ packeditem.qty }}</td>
-				</tr>
-			{% endfor %}
-		</table>
+		<div class="col-sm-2">0</div>
+		<div class="col-sm-1">{{ warehousepacking.get_line_qtytoship(line.linenbr) }}</div>
+		<div class="col-sm-1">{{ warehousepacking.get_line_qtypacked(line.linenbr) }}</div>
+		<div class="col-sm-1">{{ warehousepacking.get_line_qtyremaining(line.linenbr) }}</div>
 	</div>
 </div>
