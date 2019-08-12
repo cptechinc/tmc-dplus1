@@ -15,6 +15,7 @@
 			$url = new Purl\Url($input->$requestmethod->text('page'));
 			$url->query->set('ordn', $ordn);
 			$session->loc = $url->getUrl();
+			$session->remove('cartoncount');
 			break;
 		case 'get-pack-notes':
 			$ordn = $input->$requestmethod->text('ordn');
@@ -23,8 +24,8 @@
 		case 'save-packing-box':
 			$ordn = SalesOrder::get_paddedordernumber($input->$requestmethod->text('ordn'));
 			$box = $input->$requestmethod->int('box');
-			$data = array("DBNAME=$dplusdb", 'PACKCARTON2', "ORDERNBR=$ordn", "CARTON=$box");
-			$packquery = WhseitempackQuery::create()->filterBySessionidOrder(session_id(), $ordn);
+			$data = array("DBNAME=$dplusdb", 'PACKCARTON', "ORDERNBR=$ordn", "CARTON=$box");
+			$packquery = WhseitempackQuery::create()->filterBySessionidOrder($sessionID, $ordn);
 			$packquery->filterByCarton($box);
 			$packquery->groupBy(array('itemid', 'lotserial'));
 			$packed_items = $packquery->find();
@@ -34,15 +35,50 @@
 			}
 
 			if ($input->$requestmethod->page) {
-				$url = new Purl\Url($input->$requestmethod->text('page'));
 				$session->loc = $input->$requestmethod->text('page');
 			}
 			break;
 		case 'finish-pack':
 			$ordn = $input->$requestmethod->text('ordn');
-			$data = array("DBNAME=$dplusdb", "ORDERNBR=$ordn");
-			// FOREACH DIFFERENT CARTON ITEM FOR LINE
-			$data[] = "CARTON=$carton|LINENBR=$linenbr|ITEMID=$itemid|LOTSERIAL=$lotserial|QTY=$qty";
+			$data = array("DBNAME=$dplusdb", 'FINISHORDER', "ORDERNBR=$ordn");
+
+			if ($input->$requestmethod->page) {
+				$session->loc = $input->$requestmethod->text('page');
+			} else {
+				$url = new Purl\Url($pages->get('pw_template=whse-packing')->url);
+				$url->query->set('ordn', $ordn);
+				$url->query->set('finish', 'true');
+				$session->loc = $url->getUrl();
+			}
+			break;
+		case 'print-packing':
+			$ordn = $input->$requestmethod->text('ordn');
+			$data = array("DBNAME=$dplusdb", 'PRINTPACKING', "ORDERNBR=$ordn");
+
+			if (LabelPrintSessionQuery::create()->filterBySessionid(session_id())->count()) {
+				$labelsession = LabelPrintSessionQuery::create()->findOneBySessionid(session_id());
+			} else {
+				$labelsession = new LabelPrintSession();
+				$labelsession->setSessionid(session_id());
+				$labelsession->setItemid($ordn);
+			}
+			// PRINT INVOICE
+			if (strtoupper($input->get->text('print-invoice')) == 'Y') {
+				$labelsession->setPrinterBox($input->$requestmethod->text('invoice-printer'));
+			}
+
+			// PRINT PACK TICKET
+			if (strtoupper($input->get->text('print-packticket')) == 'Y') {
+				$labelsession->setPrinterMaster($input->$requestmethod->text('packticket-printer'));
+			}
+			$labelsession->save();
+
+			if ($input->$requestmethod->page) {
+				$session->loc = $input->$requestmethod->text('page');
+			} else {
+				$url = new Purl\Url($pages->get('pw_template=whse-packing')->url);
+				$session->loc = $url->getUrl();
+			}
 			break;
 	}
 

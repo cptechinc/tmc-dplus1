@@ -27,6 +27,26 @@ $(function() {
 		}).catch(swal.noop);
 	});
 
+	$("body").on("click", ".finish-order", function(e) {
+		e.preventDefault();
+		var button = $(this);
+
+		swal({
+			title: 'Are you sure?',
+			text: "You are trying to submit this order",
+			type: 'warning',
+			showCancelButton: true,
+			confirmButtonClass: 'btn btn-success',
+			cancelButtonClass: 'btn btn-danger',
+			buttonsStyling: false,
+			confirmButtonText: 'Yes!'
+		}).then(function (result) {
+			if (result) {
+				window.location.href = button.attr('href');
+			}
+		}).catch(swal.noop);
+	});
+
 	$("body").on("click", ".choose-item", function(e) {
 		e.preventDefault();
 		var button = $(this);
@@ -45,5 +65,45 @@ $(function() {
 		} else {
 			input_barcode.val(itemID);
 		}
+	});
+
+
+
+	/////////////////////////////////////
+	// 1. Select Printer
+	////////////////////////////////////
+	////////////////////////////////////
+	var printlabelform = $('#print-form');
+
+	$("body").on("click", ".printer-check", function(e) {
+		var checkbox = $(this);
+		var printer = checkbox.data('printer');
+		var printerdiv = $('#'+printer);
+
+		if (checkbox.is(':checked')) {
+			printerdiv.addClass('show');
+		} else {
+			printerdiv.removeClass('show');
+		}
+	});
+
+	$('#labelprinters-modal').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var inputname = button.data('input'); // Extract info from data-* attributes
+		var modal = $(this);
+		modal.attr('data-input', inputname);
+	});
+
+	$("body").on("click", ".select-labelprinter", function(e) {
+		e.preventDefault();
+		var button  = $(this);
+		var labelID = button.find('.printer-id').text();
+		var desc    = button.find('.printer-desc').text();
+		var modal   = button.closest('.modal');
+		var inputname = modal.attr('data-input');
+		var input = printlabelform.find('input[name="'+inputname+'"]');
+		input.val(labelID);
+		input.closest('.printer-input').find('.printer-desc').text(desc);
+		modal.modal('hide');
 	});
 });

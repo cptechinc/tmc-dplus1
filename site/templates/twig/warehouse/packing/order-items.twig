@@ -2,13 +2,13 @@
 	<div class="list-group">
 		<div class="list-group-item bg-dark text-white">
 			<div class="row">
-				<div class="col-sm-1">Carton</div>
-				<div class="col-sm-1">Line</div>
-				<div class="col-sm-4">Item</div>
-				<div class="col-sm-2">In Box</div>
-				<div class="col-sm-1">To Ship</div>
-				<div class="col-sm-1">Packed</div>
-				<div class="col-sm-1">Remaining</div>
+				<div class="col-sm-1 text-right">Carton</div>
+				<div class="col-sm-1 text-right">Line</div>
+				<div class="col-sm-3">Item</div>
+				<div class="col-sm-2 text-right">In Box</div>
+				<div class="col-sm-1 text-right">To Ship</div>
+				<div class="col-sm-1 text-right">Packed</div>
+				<div class="col-sm-1 text-right">Remaining</div>
 			</div>
 		</div>
 		{% for line in warehousepacking.get_packsalesorderdetails() %}

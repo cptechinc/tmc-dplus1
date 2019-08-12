@@ -113,6 +113,13 @@
 
 			$session->loc  = $url->getUrl();
 			break;
+		case 'init-pick-item-label-print':
+			$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
+			$ordn   = $input->$requestmethod->text('ordn');
+			$itemID = $input->$requestmethod->text('itemID');
+			$data = array("DBNAME=$dplusdb", "ORDERCARTONINIT", "ORDERNBR=$ordn", "ITEMID=$itemID");
+			$session->loc = $input->$requestmethod->text('page');
+			break;
 		case 'print-thermal-label':
 			$binID     = $input->$requestmethod->text('binID');
 			$itemID    = $input->$requestmethod->text('itemID');
@@ -142,6 +149,27 @@
 
 			$data = array("DBNAME=$dplusdb", "ITEMCARTONPRINT");
 			$session->loc = $input->$requestmethod->text('page');
+			break;
+		case 'print-pick-item-thermal-label':
+			$ordn      = $input->$requestmethod->text('ordn');
+			$itemID    = $input->$requestmethod->text('itemID');
+
+			if (LabelPrintSessionQuery::create()->filterBySessionid(session_id())->count()) {
+				$labelsession = LabelPrintSessionQuery::create()->findOneBySessionid(session_id());
+			} else {
+				$labelsession = new LabelPrintSession();
+				$labelsession->setSessionid(session_id());
+				$labelsession->setItemid($itemID);
+			}
+
+			$labelsession->setLabelBox($input->$requestmethod->text('box-label'));
+			$labelsession->setPrinterBox($input->$requestmethod->text('box-printer'));
+			$labelsession->setNbrBoxLabels($input->$requestmethod->int('box-label-count'));
+			$labelsession->save();
+
+			$data = array("DBNAME=$dplusdb", "ORDERCARTONPRINT", "ORDERNBR=$ordn", "ITEMID=$itemID");
+			$session->loc = $input->$requestmethod->text('page');
+			$session->printpicklabels = true;
 			break;
 	}
 

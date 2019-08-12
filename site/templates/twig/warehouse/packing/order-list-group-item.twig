@@ -1,8 +1,8 @@
 <div class="list-group-item">
-	<div class="row mb-3">
-		<div class="col-sm-1">0</div>
-		<div class="col-sm-1">{{ line.linenbr }}</div>
-		<div class="col-sm-4">
+	<div class="row mb-1">
+		<div class="col-sm-1 text-right">0</div>
+		<div class="col-sm-1 text-right">{{ line.linenbr }}</div>
+		<div class="col-sm-3">
 			{% if line.is_item_serialized() %}
 				{{ line.itemid }}
 			{% else %}
@@ -13,9 +13,9 @@
 			<br>
 			{{ line.desc1 }}
 		</div>
-		<div class="col-sm-2">0</div>
-		<div class="col-sm-1">{{ warehousepacking.get_line_qtytoship(line.linenbr) }}</div>
-		<div class="col-sm-1">{{ warehousepacking.get_line_qtypacked(line.linenbr) }}</div>
-		<div class="col-sm-1">{{ warehousepacking.get_line_qtyremaining(line.linenbr) }}</div>
+		<div class="col-sm-2 text-right">0</div>
+		<div class="col-sm-1 text-right">{{ warehousepacking.get_line_qtytoship(line.linenbr) }}</div>
+		<div class="col-sm-1 text-right">{{ warehousepacking.get_line_qtypacked(line.linenbr) }}</div>
+		<div class="col-sm-1 text-right">{{ warehousepacking.get_line_qtyremaining(line.linenbr) }}</div>
 	</div>
 </div>

@@ -88,11 +88,27 @@ class DplusoWarehousePicking extends WireData implements Module {
 	}
 
 	/**
+	 * Returns Ordn
+	 * @return string
+	 */
+	public function get_ordn() {
+		return $this->ordn;
+	}
+
+	/**
 	 * Sets Line Number
 	 * @param int $linenbr Line Number
 	 */
 	public function set_linenbr($linenbr) {
 		$this->linenbr = $linenbr;
+	}
+
+	/**
+	 * Returns linenbr
+	 * @return string
+	 */
+	public function get_linenbr() {
+		return $this->linenbr;
 	}
 
 	/**

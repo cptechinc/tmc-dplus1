@@ -67,24 +67,6 @@ class WarehousePacking extends WireData implements Module {
 		$this->config->inventory = $this->wire('modules')->get('WarehouseInventoryConfig');
 		//$this->config->picking   = $this->wire('modules')->get('WarehousePickingConfig');
 
-		$this->addHook('Page::get_packlineURL', function($event) {
-			$p = $event->object;
-			$linenbr = $event->arguments(0);
-
-			$url = new Url($p->fullURL->getUrl());
-			$url->query->set('linenbr', $linenbr);
-			$event->return = $url->getUrl();
-		});
-
-		$this->addHook('Page::get_boxURL', function($event) {
-			$p = $event->object;
-			$linenbr = $event->arguments(0);
-
-			$url = new Url($p->fullURL->getUrl());
-			$url->query->set('box', $linenbr);
-			$event->return = $url->getUrl();
-		});
-
 		$this->addHook('Page::get_addboxURL', function($event) {
 			$p = $event->object;
 			$linenbr = $event->arguments(0);
@@ -94,21 +76,28 @@ class WarehousePacking extends WireData implements Module {
 			$event->return = $url->getUrl();
 		});
 
-		$this->addHook('Page::get_submitpacklineURL', function($event) {
-			$p = $event->object;
-			$linenbr = $event->arguments(0);
-			$url = new Url($p->fullURL->getUrl());
-			$url->path = $p->child('template=redir')->url;
-			$url->query->set('action', 'save-line');
-			$url->query->set('page', $p->fullURL->getUrl());
-			$event->return = $url->getUrl();
-		});
-
 		$this->addHook('Page::get_orderURL', function($event) {
 			$p = $event->object;
 			$url = new Url($p->fullURL->getUrl());
 			$url->path = $p->child('template=redir')->url;
 			$url->query->remove('box');
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page::get_redirURL', function($event) {
+			$p = $event->object;
+			$url = new Url($p->fullURL->getUrl());
+			$url->path = $p->child('template=redir')->url;
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page::get_finishpackURL', function($event) {
+			$p = $event->object;
+			$ordn = $event->arguments(0);
+			$url = new Url($p->fullURL->getUrl());
+			$url->path = $p->child('template=redir')->url;
+			$url->query->set('action', 'finish-pack');
+			$url->query->set('ordn', $ordn);
 			$event->return = $url->getUrl();
 		});
 	}
@@ -131,6 +120,14 @@ class WarehousePacking extends WireData implements Module {
 	 */
 	public function set_ordn($ordn) {
 		$this->ordn = $ordn;
+	}
+
+	/**
+	 * Returns Ordn
+	 * @return string
+	 */
+	public function get_ordn() {
+		return $this->ordn;
 	}
 
 	/**
@@ -230,14 +227,9 @@ class WarehousePacking extends WireData implements Module {
 	 * @return int          Qty remaining
 	 */
 	public function get_line_qtyremaining($linenbr) {
-		$packitemqty = PackSalesOrderDetailQuery::create()->get_line_qtyremaining($this->sessionID, $this->ordn, $linenbr);
-
-		if ($packitemqty) {
-			$qtypacked = $this->get_line_qtypacked($linenbr);
-			return $packitemqty - $qtypacked;
-		} else {
-			return $packitemqty;
-		}
+		$to_ship = $this->get_line_qtytoship($linenbr);
+		$qty_packed = $this->get_line_qtypacked($linenbr);
+		return $to_ship - $qty_packed;
 	}
 
 	/**
@@ -294,9 +286,12 @@ class WarehousePacking extends WireData implements Module {
 	 * @return void
 	 */
 	public function init_cartoncount() {
-		$count = WhseitempackQuery::create()->get_maxcarton($this->sessionID, $this->ordn);
-		$count = !empty($count) ? $count : 1;
-		$this->wire('session')->cartoncount = intval($this->wire('session')->get('cartoncount')) > $count ? $this->wire('session')->cartoncount : $count;
+		if (!$this->wire('session')->cartoncount) {
+			$count = WhseitempackQuery::create()->get_maxcarton($this->sessionID, $this->ordn);
+			$count = !empty($count) ? $count : 1;
+			$this->wire('session')->cartoncount = $count;
+		}
+
 	}
 
 	/**
@@ -306,12 +301,13 @@ class WarehousePacking extends WireData implements Module {
 	 */
 	public function send_savepackboxrequest($box = 1) {
 		$http = new WireHttp();
-		$url = new Url($this->wire('pages')->get('pw_template=whse-packing')->child('template=redir')->httpUrl);
+		$url = new Url($this->wire('pages')->get('pw_template=whse-packing')->child('template=redir')->url);
 		$url->query->set('action', 'save-packing-box');
 		$url->query->set('sessionID', $this->sessionID);
 		$url->query->set('ordn', $this->ordn);
 		$url->query->set('box', $box);
-		$http->get($url->getUrl());
+		$http->get('127.0.0.1'.$url->getUrl());
+		//return $url->getUrl();
 	}
 
 	/**
@@ -330,11 +326,11 @@ class WarehousePacking extends WireData implements Module {
 					break;
 				case 'edit-barcode':
 					$this->edit_barcode_qty($input);
-					//$this->send_savepackboxrequest($input->post->int('carton'));
+					$this->send_savepackboxrequest($input->post->int('carton'));
 					break;
 				case 'delete-barcode':
 					$this->delete_barcode_qty($input);
-					//$this->send_savepackboxrequest($input->post->int('carton'));
+					$this->send_savepackboxrequest($input->post->int('carton'));
 					break;
 			}
 		} else {
@@ -372,7 +368,7 @@ class WarehousePacking extends WireData implements Module {
 		if ($invquery->count()) {
 			$invitem = $invquery->findOne();
 
-			if ($values->int('linenbr')) {
+			if ($values->linenbr) {
 				$packquery->filterByLinenbr($values->int('linenbr'));
 			}
 			$packquery->filterByItemid($invitem->itemid);
@@ -384,7 +380,7 @@ class WarehousePacking extends WireData implements Module {
 
 				if ($is_valid) {
 					$this->add_whseitempack($packline, $input);
-					//$this->send_savepackboxrequest($input->post->int('carton'));
+					$this->send_savepackboxrequest($input->post->int('carton'));
 				}
 			} else {
 				$this->session->packerror = "Scan: $barcode doesn't match anything for any items on this order";
@@ -394,7 +390,13 @@ class WarehousePacking extends WireData implements Module {
 				$linenbr = $values->int('linenbr');
 				$packquery->filterByLinenbr($values->int('linenbr'));
 				$packline = $packquery->findOne();
-				$this->session->packerror = "Scan: $barcode doesn't match anything for Line $linenbr ($packline->itemid)";
+
+				if ($packline->is_item_nonstock() && $values->text('barcode') == 'N') {
+					$this->add_whseitempack($packline, $input);
+					$this->send_savepackboxrequest($input->post->int('carton'));
+				} else {
+					$this->session->packerror = "Scan: $barcode doesn't match anything for Line $linenbr ($packline->itemid)";
+				}
 			} else {
 				$this->session->packerror = "Scan: $barcode doesn't match anything for any items in this order";
 			}
@@ -452,18 +454,26 @@ class WarehousePacking extends WireData implements Module {
 		$barcode = $values->text('barcode');
 		$carton  = $values->int('carton');
 		$qty     = $values->int('qty');
+		$found_pack = false;
 
-		if ($packitem->is_item_serialized()) {
-			$qty = 1;
-		}
 
-		if ($packing_master->filterBySessionidOrder($packitem->sessionid, $packitem->ordn)->filterByCarton($carton)->count()) {
-			$item = $packing_master->filterBySessionidOrder($packitem->sessionid, $packitem->ordn)->filterByCarton($carton)->findOne();
 
-			if (!$packitem->is_item_serialized()) {
+		if ($packitem->is_item_serialized() || $packitem->is_item_lotted()) {
+			$found_pack = $packing_master->filterBySessionidOrderLinenbr($packitem->sessionid, $packitem->ordn, $packitem->linenbr)->filterByCarton($carton)->filterByLotserial($barcode)->count();
+			$item = $packing_master->filterBySessionidOrderLinenbr($packitem->sessionid, $packitem->ordn, $packitem->linenbr)->filterByCarton($carton)->filterByLotserial($barcode)->findOne();
+
+			if ($packitem->is_item_serialized()) {
+				$qty = 1;
+			} else {
 				$qty = $qty + $item->qty;
 			}
 		} else {
+			$found_pack = $item = $packing_master->filterBySessionidOrderLinenbr($packitem->sessionid, $packitem->ordn, $packitem->linenbr)->filterByCarton($carton)->count();
+			$item = $packing_master->filterBySessionidOrderLinenbr($packitem->sessionid, $packitem->ordn, $packitem->linenbr)->filterByCarton($carton)->findOne();
+			$qty = $qty + $item->qty;
+		}
+
+		if (!$found_pack) {
 			$item = new Whseitempack();
 			$item->setSessionid($packitem->sessionid);
 			$item->setOrdn($packitem->ordn);
