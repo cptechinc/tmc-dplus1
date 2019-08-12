@@ -12,6 +12,6 @@
 			$url = $roles->get($user->dplusrole)->homepage;
 		}
 	}
-
+	
 	header("Location: $url");
 	exit;
