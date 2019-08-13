@@ -4,18 +4,13 @@
 
 	$page->formurl = $page->parent('template=warehouse-menu')->child('template=redir')->url;
 
-	if (!$page->print && !$input->get->scan) {
-		$page->body = $config->twig->render('warehouse/inventory/physical-count/item-search-form.twig', ['page' => $page]);
-	}
-
 	if ($input->get->scan) {
 		$scan = $input->get->text('scan');
 		$page->scan = $scan;
-		$page->title = "Find Item Inquiry for $scan";
-		$inventory = InvsearchQuery::create();
-		$resultscount = InvsearchQuery::create()->countDistinctItemid(session_id());
-		$items = InvsearchQuery::create()->findDistinctItems(session_id());
-		$page->body .= $config->twig->render('warehouse/inventory/find-item/results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
+		// $page->title = "Find Item Inquiry for $scan";
+		// TODO physical-count-form.twig 
+	} else {
+		$page->body = $config->twig->render('warehouse/inventory/physical-count/item-search-form.twig', ['page' => $page]);
 	}
 
 	include __DIR__ . "/basic-page.php";
