@@ -51,6 +51,10 @@ $(function() {
 		return true;
 	});
 
+	$('.btn-clear').click(function(){
+		$('.form-reset input[type="text"]').val('');
+	});
+
 	$.notifyDefaults({
 		type: 'success',
 		allow_dismiss: true,
@@ -155,4 +159,3 @@ function init_datepicker() {
 		});
 	});
 }
-

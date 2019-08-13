@@ -1,0 +1,43 @@
+<div class="form-group">
+	<a href="{{ page.parent.url }}" class="btn btn-primary not-round">
+		<i class="fa fa-arrow-left" aria-hidden="true"></i> Return to {{ page.parent.title }}
+	</a>
+</div>
+<h3 class="my-4 font-weight-bold text-danger">Scanned: {{ scan }}</h3>
+<div class="row">
+	<form action="{{ page.url }}" method="get" class="col-sm-6 form-reset allow-enterkey-submit">
+		<input type="hidden" name="action" value="">
+		<div class="form-group">
+			<label for="itemID">Item ID</label>
+			<div class="input-group">
+				<input type="text" class="form-control" id="itemID" name="itemID">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="lotserial">Lot / Serial</label>
+			<div class="input-group">
+				<input type="text" class="form-control" id="lotserial" name="lotserial">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="lotserialref">Lot/Serial Ref</label>
+			<div class="input-group">
+				<input type="text" class="form-control" id="lotserialref" name="lotserialref">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="bin">Bin ID</label>
+			<div class="input-group">
+				<input type="text" class="form-control" id="bin" name="binID">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="qty">Qty</label>
+			<div class="input-group">
+				<input type="text" class="form-control" id="qty" name="qty">
+			</div>
+		</div>
+		<button type="submit" class="btn btn-success not-round">Submit</button>
+		<a href="" class="btn-clear btn btn-danger not-round">Reset</a>
+	</form>
+</div>
