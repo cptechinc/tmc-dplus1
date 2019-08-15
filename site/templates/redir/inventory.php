@@ -237,6 +237,20 @@
 			$session->loc = $input->$requestmethod->text('page');
 			$session->printpicklabels = true;
 			break;
+		case 'physical-count-search':
+			$q = strtoupper($input->$requestmethod->text('scan'));
+			$binID = $input->$requestmethod->text('binID');
+			$data = array("DBNAME=$dplusdb", 'PHYSITEMSEARCH', "QUERY=$q");
+
+			if ($input->$requestmethod->page) {
+				$url = new Purl\Url($input->$requestmethod->text('page'));
+			} else {
+				$url = new Purl\Url($pages->get('pw_template=whse-phsyical-count'));
+			}
+			
+			$url->query->set('scan', $q);
+			$session->loc = $url->getUrl();
+			break;
 	}
 
 	if (!empty($data)) {
