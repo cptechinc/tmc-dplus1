@@ -175,6 +175,11 @@
 			break;
 		case 'finish-item':
 			$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
+
+			$pickingsession = $modules->get('DplusoWarehousePicking');
+			$pickingsession->set_sessionID(session_id());
+			$pickingsession->set_ordn($whsesession->ordernbr);
+
 			$data = array("DBNAME=$dplusdb", 'ACCEPTITEM', "ORDERNBR=$whsesession->ordernbr", "LINENBR=$item->linenbr", "ITEMID=$item->itemnbr");
 
 			if ($whsesession->is_picking()) {
@@ -191,8 +196,13 @@
 					$data[] = "PALLETNBR=$palletnbr|QTY=$qty";
 				}
 			} elseif ($whsesession->is_pickingunguided()) {
-				$linenbr = $input->get->int('linenbr');
-				$pickitem = PickSalesOrderDetailQuery::create()->findOneBySessionidOrderLinenbr(session_id(), $whsesession->ordernbr, $linenbr);
+				$linenbr    = $input->get->int('linenbr');
+				$sublinenbr = $input->get->int('sublinenbr');
+				$pickingsession->set_linenbr($linenbr);
+				$pickingsession->set_sublinenbr($sublinenbr);
+
+				$pickitem = $pickingsession->get_picksalesorderdetail();
+				echo $dpluso->getLastExecutedQuery();
 				$data = array("DBNAME=$dplusdb", 'ACCEPTITEM', "ORDERNBR=$whsesession->ordernbr", "LINENBR=$pickitem->linenbr", "ITEMID=$pickitem->itemnbr");
 
 
@@ -213,10 +223,15 @@
 				}
 				$url = new Purl\Url($input->$requestmethod->text('page'));
 				$url->query->remove('linenbr');
+				$url->query->remove('sublinenbr');
 				$input->$requestmethod->page = $url->getUrl();
 			}
 			$session->loc = $input->$requestmethod->text('page');
-			WhseitempickQuery::create()->filterBySessionidOrderLinenbr(session_id(), $whsesession->ordn, $linenbr)->delete();
+
+			$picking_master = WhseitempickQuery::create();
+			$picking_master->filterBySessionidOrder($this->sessionID, $this->ordn);
+			$picking_master->filterByLinenbrSublinenbr($this->linenbr, $this->sublinenbr);
+			$picking_master->delete();
 			break;
 		case 'skip-item':
 			$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
