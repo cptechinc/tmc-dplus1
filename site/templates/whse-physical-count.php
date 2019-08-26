@@ -1,6 +1,9 @@
 <?php
+	use Propel\Runtime\ActiveQuery\Criteria;
+
 	$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
 	$warehouse   = WarehouseQuery::create()->findOneByWhseid($whsesession->whseid);
+	$modules->get('DplusoPagesWarehouse')->init_physicalcount();
 	$html = $modules->get('HtmlWriter');
 
 	$page->formurl = $page->parent('template=warehouse-menu')->child('template=redir')->url;
@@ -16,9 +19,18 @@
 
 		if ($query_phys->count() == 1) {
 			$physicalitem = $query_phys->findOne();
-			$page->body = $config->twig->render('warehouse/inventory/physical-count/physical-count-form.twig', ['page' => $page,'item' => $physicalitem]);
+			$page->body = $config->twig->render('warehouse/inventory/physical-count/physical-count-form.twig', ['page' => $page, 'item' => $physicalitem]);
 		} elseif ($query_phys->count() > 1) {
-
+			if ($input->get->recno) {
+				$recno = $input->get->int('recno');
+				$query_phys->filterByRecno($recno, Criteria::ALT_NOT_EQUAL);
+				$query_phys->delete();
+				$page->fullURL->query->remove('recno');
+				$session->redirect($page->fullURL->getUrl());
+			} else {
+				$physicalitems = $query_phys->find();
+				$page->body = $config->twig->render('warehouse/inventory/physical-count/item-list.twig', ['page' => $page, 'items' => $physicalitems]);
+			}
 		} else {
 			if ($input->get->q) {
 				$q = $input->get->text('q');

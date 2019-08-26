@@ -13,13 +13,16 @@ $(function() {
 			input_bin.focus();
 		} else if (input_item.data('itemtype') == 'S') {
 			input_lotserial.focus();
+		} else if (input_item.data('itemtype') == 'L') {
+			input_lotserial.focus();
+		} else {
+			input_bin.focus();
 		}
 	} else {
 		input_item.focus();
 	}
 
-
-	form_physcount .validate({
+	form_physcount.validate({
 		submitHandler : function(form) {
 			var valid_qty     = validate_qty();
 			var valid_bin     = validate_bin();

@@ -324,4 +324,14 @@
 				$event->return = $url->getUrl();
 			});
 		}
+
+		public function init_physicalcount() {
+			$this->addHook('Page::get_chooseitemURL', function($event) {
+				$p = $event->object;
+				$item = $event->arguments(0);
+				$url = new Url($p->fullURL->getUrl());
+				$url->query->set('recno', $item->recno);
+				$event->return = $url->getUrl();
+			});
+		}
 	}

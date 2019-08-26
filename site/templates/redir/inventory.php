@@ -247,8 +247,32 @@
 			} else {
 				$url = new Purl\Url($pages->get('pw_template=whse-phsyical-count'));
 			}
-			
+
 			$url->query->set('scan', $q);
+			$session->loc = $url->getUrl();
+			break;
+		case 'physical-count-submit':
+			$scan = $input->$requestmethod->text('scan');
+			$query_phys = WhseitemphysicalcountQuery::create();
+			$query_phys->filterBySessionid(session_id());
+			$query_phys->filterByScan($scan);
+
+			$item = $query_phys->findOne();
+			$item->setItemid($input->$requestmethod->text('itemID'));
+			$item->setLotserial($input->$requestmethod->text('lotserial'));
+			$item->setLotserialref($input->$requestmethod->text('lotserialref'));
+			$item->setBin($input->$requestmethod->text('binID'));
+			$item->setQty($input->$requestmethod->text('qty'));
+			$item->save();
+
+			$data = array("DBNAME=$dplusdb", 'PHYSITEMSAVE');
+
+			if ($input->$requestmethod->page) {
+				$url = new Purl\Url($input->$requestmethod->text('page'));
+			} else {
+				$url = new Purl\Url($pages->get('pw_template=whse-phsyical-count'));
+			}
+			$url->query->set('scan', $scan);
 			$session->loc = $url->getUrl();
 			break;
 	}
