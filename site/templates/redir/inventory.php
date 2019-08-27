@@ -260,7 +260,8 @@
 			$item = $query_phys->findOne();
 			$item->setItemid($input->$requestmethod->text('itemID'));
 			$item->setLotserial($input->$requestmethod->text('lotserial'));
-			$item->setLotserialref($input->$requestmethod->text('lotserialref'));
+			// Lot Serial Ref is Read-Only currently 8/23
+			// $item->setLotserialref($input->$requestmethod->text('lotserialref'));
 			$item->setBin($input->$requestmethod->text('binID'));
 			$item->setQty($input->$requestmethod->text('qty'));
 			$item->save();
